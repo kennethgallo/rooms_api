@@ -80,7 +80,14 @@ def root():
 # value: Annotated[str, ] <- params after initial type are the metadata, can be complex []{}etc
 
 
-@app.get("/rooms", status_code=status.HTTP_200_OK, tags=["rooms"])
+@app.get(
+    "/rooms",
+    status_code=status.HTTP_200_OK,
+    tags=["rooms"],
+    summary="List all available rooms",
+    description="Returns all rooms. Supports filtering by price and search term",
+    response_description="A list of rooms matching filter criteria",
+)
 def get_rooms(params: Annotated[RoomQueryParams, Query()]):
     results = [apartment, house, studio]
 
@@ -95,7 +102,9 @@ def get_rooms(params: Annotated[RoomQueryParams, Query()]):
     return results
 
 
-@app.get("/rooms/mansions", status_code=status.HTTP_200_OK, tags=["rooms"])
+@app.get(
+    "/rooms/mansions", status_code=status.HTTP_200_OK, tags=["rooms"], deprecated=True
+)
 def get_mansions(params: Annotated[RoomQueryParams, Query()]):
     results = [house]
 
