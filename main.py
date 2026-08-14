@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Cookie, FastAPI, HTTPException, Query, Response, status
 from fastapi.staticfiles import StaticFiles
@@ -46,6 +46,11 @@ studio = {
 }
 
 
+class AppCookies(BaseModel):
+    theme: Literal["light", "dark"] = "dark"
+    language: Literal["en", "es", "ge"] = "en"
+
+
 class RoomQueryParams(BaseModel):
     max_price: int | None = Field(
         default=None, ge=10, le=10_000, examples=[100, 200, 10_000]
@@ -69,13 +74,13 @@ class RoomQueryParams(BaseModel):
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
-def root(language: Annotated[str | None, Cookie()] = None):
+def root(app_cookies: Annotated[AppCookies, Cookie()]):
     greetings = {
         "en": "Welcome to rent a room",
         "es": "Bienvenido to rent a room",
         "ge": "Willkomen to rent a room",
     }
-    greeting = greetings.get(language or "en")
+    greeting = greetings.get(app_cookies.language)
     return {"message": greeting}
 
 
@@ -136,7 +141,9 @@ def get_room(room_id: int):
 
 @app.get("/preferences", status_code=status.HTTP_200_OK, tags=["preferences"])
 def set_preferences(response: Response):
-    response.set_cookie(key="theme", value="dark")
-    response.set_cookie(key="language", value="en")
+    app_cookies = AppCookies()
+
+    response.set_cookie(key="theme", value=app_cookies.theme)
+    response.set_cookie(key="language", value=app_cookies.language)
 
     return {"message": "preferences updated"}
